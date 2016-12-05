@@ -1,5 +1,5 @@
 rm(list=ls())
-
+## Random forest without PCA preprocessing
 #Load Data
 dayList <- c(21,19, 17,12 ) 
 for ( lastDay in dayList){  
