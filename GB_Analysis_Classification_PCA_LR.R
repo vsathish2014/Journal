@@ -1,10 +1,11 @@
 rm(list=ls())
-
+ptm <- proc.time()
 #Load Data
-#dayList <- c(21,17,12 ) 
-dayList <- c(19 ) 
-for ( lastDay in dayList){  
-  #lastDay <- 19 # 22, 19,17,12
+noSamples <- 121
+#dayList <- c(21,19, 17,12 ) 
+  
+#for ( lastDay in dayList){  
+  lastDay <- 12 # 21, 19,17,12
   rollingWindow <- 10
   
   dbf <-  22-lastDay
@@ -41,66 +42,17 @@ for ( lastDay in dayList){
   data_N_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_N", header=TRUE)
   data_N_ST2 <- data_N_ST2[,-1]
   data_N_ST2 <- data_N_ST2[,!(names(data_N_ST2) %in% drop)]
-  # } else {
-  #   
-  #   sheets_F <- c("dist_data_F","diff_data_F" )
-  #   
-  #   data_F <-  read.xlsx("Data_classification.xlsx", sheetName = sheets_F[1])
-  #   data_F <- data_F[,-c(1,50,51,52,53)]
-  #   
-  #   data_F <- cbind(data_F, read.xlsx("Data_classification.xlsx", sheetName = sheets_F[2]))
-  #   data_F <- data_F[,-49]
-  #   data_F <- data_F[,!(names(data_F) %in% drop)]
-  #   
-  #   sheets_N <- c("dist_data_N","diff_data_N" )
-  #   
-  #   data_N <-  read.xlsx("Data_classification.xlsx", sheetName = sheets_N[1])
-  #   data_N <- data_N[,-c(1,50,51,52,53)]
-  #   
-  #   data_N <- cbind(data_N, read.xlsx("Data_classification.xlsx", sheetName = sheets_N[2]))
-  #   data_N <- data_N[,-49]
-  #   data_N <- data_N[,!(names(data_N) %in% drop)]
-  #   
-  #   
-  # }  
-  # 
-  
-  
-  # ##Drop columns based on condition
-  # 
-  # if (drop_act ==1) { 
-  # data_F <- data_F[, !grepl("act",colnames(data_F))] 
-  # 
-  # data_N <- data_N[, !grepl("act",colnames(data_N))] 
-  # 
-  # }
-  # 
-  # if (drop_KL ==1) { 
-  #   data_F <- data_F[, !grepl("KL",colnames(data_F))] 
-  #   
-  #   data_N <- data_N[, !grepl("KL",colnames(data_N))] 
-  #   
-  # }
-  # 
-  # 
-  # if (drop_SISAVg ==1) { 
-  #   data_F <- data_F[, !grepl("SISAverage",colnames(data_F))] 
-  #   
-  #   data_N <- data_N[, !grepl("SISAverage",colnames(data_N))] 
-  #   
-  # }
-  
   
   
   ##Select Random controllers 
-  x <- seq(1,11)
+ 
   set.seed(1000)
-  t1<- replicate(11,sample(1:11,3,replace = F))
-  t1_1<-  sample(1:11,11,replace = F) 
+ 
+  t1_1 <- rep(seq(1:11),11) 
   sample_data_F_ST1_Trg<- list()
   sample_data_F_ST2_Trg<- list()
   set.seed(1000)
-  for (i in 1:11){
+  for (i in 1:noSamples){
     sample_data_F_ST1_Trg[[i]]<- subset(data_F_ST1, controllerID !=t1_1[i] )
     sample_data_F_ST2_Trg[[i]]<- subset(data_F_ST2, controllerID !=t1_1[i] )
     #sample_data_F_Trg[[i]]<- subset(data_F_T1, controllerID !=t1_1[i] )
@@ -114,7 +66,7 @@ for ( lastDay in dayList){
   sample_data_F_ST1_Test<- list()
   sample_data_F_ST2_Test<- list()
   set.seed(1000)
-  for (i in 1:11){
+  for (i in 1:noSamples){
     sample_data_F_ST1_Test[[i]]<- subset(data_F_ST1, controllerID ==t1_1[i]  )
     sample_data_F_ST2_Test[[i]]<- subset(data_F_ST2, controllerID ==t1_1[i]  )
     #sample_data_F_Test[[i]]<- subset(data_F_T1, controllerID ==t1_1[i]  )  
@@ -129,15 +81,15 @@ for ( lastDay in dayList){
   
   # set.seed(2000)
   # t2<- replicate(11,sample(1:11,3,replace = F))
-  # t2_1<- sample(1:11,11,replace = F)
+  t2_1 <- rep(seq(1:11),11)
   
   sample_data_N_ST1_Trg<- list()
   sample_data_N_ST2_Trg<- list()
   
   set.seed(1000)
-  for (i in 1:11){
-    sample_data_N_ST1_Trg[[i]]<- subset(data_N_ST1, controllerID !=t1_1[i] )
-    sample_data_N_ST2_Trg[[i]]<- subset(data_N_ST2, controllerID !=t1_1[i] )
+  for (i in 1:noSamples){
+    sample_data_N_ST1_Trg[[i]]<- subset(data_N_ST1, controllerID !=t2_1[i] )
+    sample_data_N_ST2_Trg[[i]]<- subset(data_N_ST2, controllerID !=t2_1[i] )
     #sample_data_N_Trg[[i]]<- subset(data_N_T1, controllerID !=t1_1[i] )
     
     #Consider only Rolling window Data
@@ -149,9 +101,9 @@ for ( lastDay in dayList){
   sample_data_N_ST1_Test<- list()
   sample_data_N_ST2_Test<- list()
   set.seed(1000)
-  for (i in 1:11){
-    sample_data_N_ST1_Test[[i]]<- subset(data_N_ST1, controllerID ==t1_1[i] )
-    sample_data_N_ST2_Test[[i]]<- subset(data_N_ST2, controllerID ==t1_1[i] )
+  for (i in 1:noSamples){
+    sample_data_N_ST1_Test[[i]]<- subset(data_N_ST1, controllerID ==t2_1[i] )
+    sample_data_N_ST2_Test[[i]]<- subset(data_N_ST2, controllerID ==t2_1[i] )
     # sample_data_N_Test[[i]]<- subset(data_N_T1, controllerID ==t1_1[i] )
     
     #Consider only Rolling window Data
@@ -163,7 +115,7 @@ for ( lastDay in dayList){
   sample_data_ST1_Train <- list()
   sample_data_ST2_Train <- list()
   
-  for (i  in 1:11){
+  for (i  in 1:noSamples){
     
     sample_data_ST1_Train[[i]] <- rbind(sample_data_F_ST1_Trg[[i]],sample_data_N_ST1_Trg[[i]])
     sample_data_ST2_Train[[i]] <- rbind(sample_data_F_ST2_Trg[[i]],sample_data_N_ST2_Trg[[i]])
@@ -171,7 +123,7 @@ for ( lastDay in dayList){
   
   sample_data_ST1_Test <- list()
   sample_data_ST2_Test <- list()
-  for (i  in 1:11){
+  for (i  in 1:noSamples){
     
     sample_data_ST1_Test[[i]] <- rbind(sample_data_F_ST1_Test[[i]],sample_data_N_ST1_Test[[i]])
     sample_data_ST2_Test[[i]] <- rbind(sample_data_F_ST2_Test[[i]],sample_data_N_ST2_Test[[i]])
@@ -184,7 +136,7 @@ for ( lastDay in dayList){
   sample_data_ST1_Test_1 <- list()
   sample_data_ST2_Train_1 <- list()
   sample_data_ST2_Test_1 <- list()
-  for (i in 1:11){
+  for (i in 1:noSamples){
     sample_data_ST1_Train_1[[i]] <- sample_data_ST1_Train[[i]][ , !(names(sample_data_ST1_Train[[i]]) %in% drops)]
     sample_data_ST1_Test_1[[i]] <- sample_data_ST1_Test[[i]][ , !(names(sample_data_ST1_Test[[i]]) %in% drops)]
     
@@ -202,7 +154,7 @@ for ( lastDay in dayList){
   sample_data_ST2_Test_2 <- list()
   drop <- c("SeqNo")
   
-  for (i in 1:11) {
+  for (i in 1:noSamples) {
     sample_data_ST1_Train_1[[i]] <- sample_data_ST1_Train_1[[i]][sample(1:nrow(sample_data_ST1_Train_1[[i]])), ]
     sample_data_ST1_Train_2[[i]] <- sample_data_ST1_Train_1[[i]][,!(names(sample_data_ST1_Train_1[[i]]) %in% drop) ]
     sample_data_ST1_Test_1[[i]] <- sample_data_ST1_Test_1[[i]][sample(1:nrow(sample_data_ST1_Test_1[[i]])), ]
@@ -234,7 +186,7 @@ for ( lastDay in dayList){
   sample_data_ST2_Train_4 <- list()
   sample_data_ST2_Test_4 <- list()
   
-  for (i  in 1:11) {
+  for (i  in 1:noSamples) {
     sample_data_ST1_Train_3[[i]] <- sample_data_ST1_Train_2[[i]]
     sample_data_ST1_Train_3[[i]] <- sample_data_ST1_Train_3[[i]][,sapply(sample_data_ST1_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     preprocessParams_ST1 <- preProcess(sample_data_ST1_Train_3[[i]], method=c("center", "scale", "pca"),thresh = 0.99)
@@ -259,7 +211,7 @@ for ( lastDay in dayList){
   }
 
 ## For Logistic regression class need to be cahnged to numeric
-for (i in 1:11){
+for (i in 1:noSamples){
   sample_data_ST1_Train_4[[i]]$Class <- ifelse(sample_data_ST1_Train_4[[i]]$Class=="F",1,0)
   sample_data_ST1_Test_4[[i]]$Class <- ifelse(sample_data_ST1_Test_4[[i]]$Class=="F",1,0)
   sample_data_ST2_Train_4[[i]]$Class <- ifelse(sample_data_ST2_Train_4[[i]]$Class=="F",1,0)
@@ -275,7 +227,7 @@ glmModel_ST2 <- list()
 ctrl <- trainControl(method = "repeatedcv",
                      repeats = 5,
                      classProbs = TRUE)
-for (i in 1:11 ){
+for (i in 1:noSamples ){
   # train a logistic regression model
   
   glmModel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_4[[i]],method="glm", family=binomial(),  preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
@@ -308,7 +260,7 @@ misClasificError_ST2 <- list()
 Accuracy_ST2 <- list()
 
 
-for (i in 1: 11 ){
+for (i in 1: noSamples ){
   x_last_ST1 <-  ncol(sample_data_ST1_Test_4[[i]])-1
   y_last_ST1 <-  ncol(sample_data_ST1_Test_4[[i]])
   x_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,1:x_last_ST1]
@@ -345,13 +297,13 @@ mean(sapply(Accuracy_ST2,mean))
 
 
 ## Write prediction prob and actual to csv
-filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf,"test_1_Cotroller.csv")
+filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf,"_PCA_LR.csv")
 
 
 pred_act <- data.frame(cbind(y_test_ST2[[1]],predictions_prob_ST1[[1]],predictions_prob_ST2[[1]]))
 write.table(pred_act,filePredAct,sep = ",", append = T,col.names = T)
 
-for (i in 2:11){
+for (i in 2:noSamples){
   pred_act <- data.frame(cbind(y_test_ST2[[i]],predictions_prob_ST1[[i]],predictions_prob_ST2[[i]]))
   write.table(pred_act,filePredAct, sep = ",",append = T,col.names = F)
 }
@@ -360,12 +312,12 @@ for (i in 2:11){
 
 ## Write the cm to csv
 
-fileCM_ST1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_1","_dbf_",dbf,"test_1_Cotroller.csv")
-fileCM_ST2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_2","_dbf_",dbf,"test_1_Cotroller.csv")
+fileCM_ST1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_1","_dbf_",dbf,"_PCA_LR.csv")
+fileCM_ST2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_2","_dbf_",dbf,"_PCA_LR.csv")
 
 write.table(cm_ST1[[1]]$table,fileCM_ST1,sep = "," )
 write.table(cm_ST2[[1]]$table,fileCM_ST2,sep = "," )
-for (i in 2:11){
+for (i in 2:noSamples){
   write.table(cm_ST1[[i]]$table,fileCM_ST1, sep = ",",append = T)
   write.table(cm_ST2[[i]]$table,fileCM_ST2, sep = ",",append = T)  
 }
@@ -375,7 +327,7 @@ tocsv_ST2 <- data.frame(cbind(t(cm_ST2[[1]]$overall),t(cm_ST2[[1]]$byClass)))
 write.table(tocsv_ST1,fileCM_ST1,sep = ",", append = T,col.names = T)
 write.table(tocsv_ST2,fileCM_ST2,sep = ",", append = T,col.names = T)
 
-for (i in 2:11){
+for (i in 2:noSamples){
   tocsv_ST1 <- data.frame(cbind(t(cm_ST1[[i]]$overall),t(cm_ST1[[i]]$byClass)))
   tocsv_ST2 <- data.frame(cbind(t(cm_ST2[[i]]$overall),t(cm_ST2[[i]]$byClass)))
   write.table(tocsv_ST1,fileCM_ST1, sep = ",",append = T,col.names = F)
@@ -396,7 +348,7 @@ pr_ST2 <- list()
 prf_ST2 <- list()
 
 library(ROCR)
-for (i in 1 : 11) {
+for (i in 1 : noSamples) {
   p_ST1[[i]] <- predict(glmModel_ST1[[i]], newdata=x_test_ST1[[i]])
   #p_ST1[[i]]  <- ifelse( p_ST1[[i]]<0.5,0,1)
   pr_ST1[[i]] <- prediction(  p_ST1[[i]],y_test_ST1[[i]] ) # Reveresed the polarity changed to N
@@ -427,7 +379,7 @@ tpr_fpr_ST2$testno <- 1
 tpr_fpr_ST2$SeqNo <- 1:nrow(tpr_fpr_ST2)
 
 
-for (i in 2:11){
+for (i in 2:noSamples){
   temp1_ST1 <- as.data.frame(prf_ST1[[i]]@y.values)
   names(temp1_ST1) <- "TPRate_ST1"
   temp2_ST1 <-  as.data.frame(prf_ST1[[i]]@x.values)
@@ -452,14 +404,14 @@ for (i in 2:11){
 ##Copy auc 
 auc_ST1 <- list()
 auc_ST2 <- list()
-for (i in 1:11){ 
+for (i in 1:noSamples){ 
   auc_ST1[[i]] <- performance(pr_ST1[[i]], measure = "auc")
   auc_ST2[[i]] <- performance(pr_ST2[[i]], measure = "auc")
 }
 
 auc_y_ST1 <- list() 
 auc_y_ST2  <- list() 
-for (i in 1:11){
+for (i in 1:noSamples){
   auc_y_ST1[[i]]<- auc_ST1[[i]]@y.values[[1]]
   auc_y_ST2[[i]]<- auc_ST2[[i]]@y.values[[1]]
 }
@@ -467,11 +419,11 @@ for (i in 1:11){
 
 aucFinal_ST1 <- as.data.frame( t(as.data.frame(auc_y_ST1)))
 names(aucFinal_ST1) <- "auc"
-aucFinal_ST1$testno <- seq(1:11)
+aucFinal_ST1$testno <- seq(1:noSamples)
 
 aucFinal_ST2 <- as.data.frame( t(as.data.frame(auc_y_ST2)))
 names(aucFinal_ST2) <- "auc"
-aucFinal_ST2$testno <- seq(1:11)
+aucFinal_ST2$testno <- seq(1:noSamples)
 
 tpr_fpr_ST1 <- merge(tpr_fpr_ST1,aucFinal_ST1, by = "testno")
 labs_ST1 <- round(aucFinal_ST1$auc,2)
@@ -481,15 +433,16 @@ labs_ST2 <- round(aucFinal_ST2$auc,2)
 names(labs_ST2) <- 'auc'
 
 ##plot and save as pdf
-filename1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_1", "_test_1_Cotroller.pdf")
-a <- ggplot(tpr_fpr_ST1, aes(FPRate_ST1,TPRate_ST1)) +facet_wrap(~testno)
-a<- a+  geom_line() 
-a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST1))
-ggsave(filename1)
+filename1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_1", "_PCA_LR.pdf")
+a <- ggplot(tpr_fpr_ST1, aes(FPRate_ST1,TPRate_ST1)) +facet_wrap(~testno,ncol=11)
+a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
+a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST1),fontface =2)
+ggsave(filename1,width = 7, height = 7)
 
-filename2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_2", "_test_1_Cotroller.pdf")
-a <- ggplot(tpr_fpr_ST2, aes(FPRate_ST2,TPRate_ST2)) +facet_wrap(~testno)
-a<- a+  geom_line() 
-a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST2))
-ggsave(filename2)
-}
+filename2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_2", "_PCA_LR.pdf")
+a <- ggplot(tpr_fpr_ST2, aes(FPRate_ST2,TPRate_ST2)) +facet_wrap(~testno,ncol=11)
+a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
+a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST2),fontface =1)
+ggsave(filename2,width = 7, height = 7)
+#}
+proc.time() - ptm

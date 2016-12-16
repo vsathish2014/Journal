@@ -3,9 +3,9 @@ rm(list=ls())
 ptm <- proc.time()
 #Load Data
 noSamples <- 121
-dayList <- c(21,19,17,12 ) 
-for ( lastDay in dayList){  
-  #lastDay <- 19 # 22, 19,17,12
+#dayList <- c(21,19,17,12 ) 
+#or ( lastDay in dayList){  
+  lastDay <- 21 # 21, 19,17,12
   rollingWindow <- 10
   
   dbf <-  22-lastDay
@@ -49,7 +49,7 @@ for ( lastDay in dayList){
   ##Select Random controllers 
 
   set.seed(1000)
-  t1_1 <- rep(seq(1:noSamples),11)
+  t1_1 <- rep(seq(1:11),11)
   sample_data_F_ST1_Trg<- list()
   sample_data_F_ST2_Trg<- list()
   set.seed(1000)
@@ -170,15 +170,7 @@ for ( lastDay in dayList){
   }
   
   
-  for (i  in 1 : noSamples) {
-     sample_data_ST1_Train_2[[i]] <- sample_data_ST1_Train_2[[i]][,sapply(sample_data_ST1_Train_2[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-     sample_data_ST1_Test_2[[i]] <- sample_data_ST1_Test_2[[i]][,sapply(sample_data_ST1_Test_2[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-     
-     sample_data_ST2_Train_2[[i]] <- sample_data_ST2_Train_2[[i]][,sapply(sample_data_ST2_Train_2[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-     sample_data_ST2_Test_2[[i]] <- sample_data_ST2_Test_2[[i]][,sapply(sample_data_ST2_Test_2[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-     
-  }
-  
+
   
   ### Model Development
   
@@ -215,22 +207,30 @@ for ( lastDay in dayList){
   Accuracy_ST2 <- list()
   
   
+  
   for (i in 1: noSamples){
     x_last_ST1 <-  ncol(sample_data_ST1_Test_2[[i]])-1
     y_last_ST1 <-  ncol(sample_data_ST1_Test_2[[i]])
     x_test_ST1[[i]] <- sample_data_ST1_Test_2[[i]][,1:x_last_ST1]
     y_test_ST1[[i]] <- sample_data_ST1_Test_2[[i]][,y_last_ST1]
-    predictions_ST1[[i]] <- predict(SVMmodel_ST1[[i]], x_test_ST1[[i]] )
-    predictions_prob_ST1[[i]] <- predict(SVMmodel_ST1[[i]], x_test_ST1[[i]] ,type="prob",probability = TRUE)
-    cm_ST1[[i]] <- confusionMatrix(predictions_ST1[[i]] , as.factor(y_test_ST1[[i]]))
-    misClasificError_ST1[[i]] <- mean(predictions_ST1[[i]] != y_test_ST1[[i]])
-    Accuracy_ST1[[i]] <- 1 - misClasificError_ST1[[i]]
-    
     
     x_last_ST2 <-  ncol(sample_data_ST2_Test_2[[i]])-1
     y_last_ST2 <-  ncol(sample_data_ST2_Test_2[[i]])
     x_test_ST2[[i]] <- sample_data_ST2_Test_2[[i]][,1:x_last_ST2]
     y_test_ST2[[i]] <- sample_data_ST2_Test_2[[i]][,y_last_ST2]
+  }  
+  
+  
+  
+  for (i in 1: noSamples){
+ 
+    predictions_ST1[[i]] <- predict(SVMmodel_ST1[[i]], x_test_ST1[[i]] )
+    predictions_prob_ST1[[i]] <- predict(SVMmodel_ST1[[i]], x_test_ST1[[i]] ,type="prob",probability = TRUE)
+    cm_ST1[[i]] <- confusionMatrix( predictions_ST1[[i]]  , as.factor(y_test_ST1[[i]]))
+    misClasificError_ST1[[i]] <- mean(predictions_ST1[[i]] != y_test_ST1[[i]])
+    Accuracy_ST1[[i]] <- 1 - misClasificError_ST1[[i]]
+    
+ 
     predictions_ST2[[i]] <- predict(SVMmodel_ST2[[i]], x_test_ST2[[i]] )
     predictions_prob_ST2[[i]] <- predict(SVMmodel_ST2[[i]], x_test_ST2[[i]] ,type="prob",probability = TRUE)
     cm_ST2[[i]] <- confusionMatrix(predictions_ST2[[i]] , as.factor(y_test_ST2[[i]]))
@@ -254,7 +254,6 @@ for ( lastDay in dayList){
     pred_act <- data.frame(cbind(y_test_ST2[[i]],predictions_prob_ST1[[i]]$F,predictions_prob_ST2[[i]]$F))
     write.table(pred_act,filePredAct, sep = ",",append = T,col.names = F)
   }
-  
   
   
   
@@ -397,5 +396,5 @@ for ( lastDay in dayList){
   a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
   a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST2),fontface =1)
   ggsave(filename2,width = 7, height = 7)
-}
+#}
 proc.time() - ptm
