@@ -7,8 +7,8 @@ dayList <- c(21,19,17,12 )
 #dayList <- c(21)
 #for (j in NormalRobotList){
   #lastDay <- dayList[1]
-  for ( lastDay in dayList){  
-    #lastDay <- 19 # 22, 19,17,12
+  #for ( lastDay in dayList){  
+     lastDay <- 12 # 22, 19,17,12
     rollingWindow <- 10
     
     dbf <-  22-lastDay
@@ -89,7 +89,8 @@ dayList <- c(21,19,17,12 )
     # set.seed(2000)
     # t2<- replicate(11,sample(1:11,3,replace = F))
     # t2_1<- sample(1:11,11,replace = F)
-    t2_1 <- rep(seq(1:11),11)
+    #t2_1 <- rep(seq(1:11),11)
+    t2_1 <- rep(seq(1:11), each=11)
     sample_data_N_ST1_Trg<- list()
     sample_data_N_ST2_Trg<- list()
     
@@ -199,7 +200,7 @@ dayList <- c(21,19,17,12 )
       sample_data_ST1_Train_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Train_3[[i]])
       sample_data_ST1_Train_4[[i]] <- movetolast(sample_data_ST1_Train_4[[i]], c("Class"))
       sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_2[[i]]
-      sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_3[[i]][,sapply(sample_data_ST1_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
+     # sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_3[[i]][,sapply(sample_data_ST1_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
       sample_data_ST1_Test_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Test_3[[i]])
       sample_data_ST1_Test_4[[i]] <- movetolast(sample_data_ST1_Test_4[[i]], c("Class"))
       
@@ -210,7 +211,7 @@ dayList <- c(21,19,17,12 )
       sample_data_ST2_Train_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Train_3[[i]])
       sample_data_ST2_Train_4[[i]] <- movetolast(sample_data_ST2_Train_4[[i]], c("Class"))
       sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_2[[i]]
-      sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
+      #sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
       sample_data_ST2_Test_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Test_3[[i]])
       sample_data_ST2_Test_4[[i]] <- movetolast(sample_data_ST2_Test_4[[i]], c("Class"))
       
@@ -287,11 +288,11 @@ dayList <- c(21,19,17,12 )
     filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf, ".csv")
     
     
-    pred_act <- data.frame(cbind(y_test_ST2[[1]],predictions_prob_ST1[[1]]$F,predictions_prob_ST2[[1]]$F))
+    pred_act <- data.frame(cbind(1, y_test_ST2[[1]],predictions_prob_ST1[[1]]$F,predictions_prob_ST2[[1]]$F))
     write.table(pred_act,filePredAct,sep = ",", append = T,col.names = T)
     
     for (i in 2:noSamples){
-      pred_act <- data.frame(cbind(y_test_ST2[[i]],predictions_prob_ST1[[i]]$F,predictions_prob_ST2[[i]]$F))
+      pred_act <- data.frame(cbind(i, y_test_ST2[[i]],predictions_prob_ST1[[i]]$F,predictions_prob_ST2[[i]]$F))
       write.table(pred_act,filePredAct, sep = ",",append = T,col.names = F)
     }
     
@@ -433,16 +434,16 @@ dayList <- c(21,19,17,12 )
     
     ##plot and save as pdf
     filename1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_1",".pdf")
-    a <- ggplot(tpr_fpr_ST1, aes(FPRate_ST1,TPRate_ST1)) +facet_wrap(~testno)
-    a<- a+  geom_line() 
-    a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST1))
-    ggsave(filename1)
+    a <- ggplot(tpr_fpr_ST1, aes(FPRate_ST1,TPRate_ST1)) +facet_wrap(~testno,ncol=11)
+    a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
+    a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST1),fontface =2)
+    ggsave(filename1,width = 7, height = 7)
     
     filename2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_2",  ".pdf")
-    a <- ggplot(tpr_fpr_ST2, aes(FPRate_ST2,TPRate_ST2)) +facet_wrap(~testno)
-    a<- a+  geom_line() 
-    a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST2))
-    ggsave(filename2)
-  }
+    a <- ggplot(tpr_fpr_ST2, aes(FPRate_ST2,TPRate_ST2)) +facet_wrap(~testno,ncol=11)
+    a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
+    a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST2),fontface =1)
+    ggsave(filename2,width = 7, height = 7)
+#  }
 proc.time() - ptm
 #}

@@ -4,7 +4,7 @@ ptm <- proc.time()
 dayList <- c(21,19,17,12 ) 
 noSamples <- 121
 #for ( lastDay in dayList){  
-  lastDay <- 12 # 21, 19,17,12
+  lastDay <- 21 # 21, 19,17,12
   rollingWindow <- 10
   
   dbf <-  22-lastDay
@@ -83,7 +83,8 @@ noSamples <- 121
   # set.seed(2000)
   # t2<- replicate(11,sample(1:11,3,replace = F))
   # t2_1<- sample(1:11,11,replace = F)
-  t2_1 <- rep(seq(1:11),11) 
+  #t2_1 <- rep(seq(1:11),11) 
+  t2_1 <- rep(seq(1:11), each=11)
   sample_data_N_ST1_Trg<- list()
   sample_data_N_ST2_Trg<- list()
   
@@ -194,7 +195,7 @@ noSamples <- 121
     sample_data_ST1_Train_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Train_3[[i]])
     sample_data_ST1_Train_4[[i]] <- movetolast(sample_data_ST1_Train_4[[i]], c("Class"))
     sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_2[[i]]
-    sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_3[[i]][,sapply(sample_data_ST1_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
+    #sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_3[[i]][,sapply(sample_data_ST1_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     sample_data_ST1_Test_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Test_3[[i]])
     sample_data_ST1_Test_4[[i]] <- movetolast(sample_data_ST1_Test_4[[i]], c("Class"))
     
@@ -205,7 +206,7 @@ noSamples <- 121
     sample_data_ST2_Train_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Train_3[[i]])
     sample_data_ST2_Train_4[[i]] <- movetolast(sample_data_ST2_Train_4[[i]], c("Class"))
     sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_2[[i]]
-    sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
+    #sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     sample_data_ST2_Test_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Test_3[[i]])
     sample_data_ST2_Test_4[[i]] <- movetolast(sample_data_ST2_Test_4[[i]], c("Class"))
     
@@ -332,11 +333,11 @@ mean(sapply(Accuracy_ST2,mean))
 filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf,"_PCA_RF.csv")
 
 
-pred_act <- data.frame(cbind(y_test_ST2[[1]],predictions_prob_ST1[[1]],predictions_prob_ST2[[1]]))
+pred_act <- data.frame(cbind(1,y_test_ST2[[1]],predictions_prob_ST1[[1]],predictions_prob_ST2[[1]]))
 write.table(pred_act,filePredAct,sep = ",", append = T,col.names = T)
 
 for (i in 2:noSamples){
-  pred_act <- data.frame(cbind(y_test_ST2[[i]],predictions_prob_ST1[[i]],predictions_prob_ST2[[i]]))
+  pred_act <- data.frame(cbind(i,y_test_ST2[[i]],predictions_prob_ST1[[i]],predictions_prob_ST2[[i]]))
   write.table(pred_act,filePredAct, sep = ",",append = T,col.names = F)
 }
 

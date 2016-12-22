@@ -5,7 +5,7 @@ ptm <- proc.time()
 noSamples <- 121
 #dayList <- c(21,19,17,12 ) 
 #or ( lastDay in dayList){  
-  lastDay <- 21 # 21, 19,17,12
+  lastDay <- 12 # 21, 19,17,12
   rollingWindow <- 10
   
   dbf <-  22-lastDay
@@ -86,7 +86,7 @@ noSamples <- 121
   
   sample_data_N_ST1_Trg<- list()
   sample_data_N_ST2_Trg<- list()
-  t2_1 <- rep(seq(1:11),11)
+  t2_1 <- rep(seq(1:11), each=11)
   set.seed(1000)
   for (i in 1:noSamples){
     sample_data_N_ST1_Trg[[i]]<- subset(data_N_ST1, controllerID !=t2_1[i] )
@@ -247,11 +247,11 @@ noSamples <- 121
   filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf,".csv")
   
   
-  pred_act <- data.frame(cbind(y_test_ST2[[1]],predictions_prob_ST1[[1]]$F,predictions_prob_ST2[[1]]$F))
+  pred_act <- data.frame(cbind(1, y_test_ST2[[1]],predictions_prob_ST1[[1]]$F,predictions_prob_ST2[[1]]$F))
   write.table(pred_act,filePredAct,sep = ",", append = T,col.names = T)
   
   for (i in 2:noSamples){
-    pred_act <- data.frame(cbind(y_test_ST2[[i]],predictions_prob_ST1[[i]]$F,predictions_prob_ST2[[i]]$F))
+    pred_act <- data.frame(cbind(i, y_test_ST2[[i]],predictions_prob_ST1[[i]]$F,predictions_prob_ST2[[i]]$F))
     write.table(pred_act,filePredAct, sep = ",",append = T,col.names = F)
   }
   
