@@ -4,7 +4,7 @@ ptm <- proc.time()
 noSamples <- 121
 dayList <- c(21,19,17,12) 
 #for ( lastDay in dayList){  
-  lastDay <- 21 # 21, 19,17,12
+  lastDay <- 12 # 21, 19,17,12
   rollingWindow <- 10
   
   dbf <-  22-lastDay
@@ -14,7 +14,7 @@ dayList <- c(21,19,17,12)
   #SigTypeInt <- 2
   
   ## Set flag for dropping calucalted Torque and speed
-  drop_act <- 0 # 1 for True and   Not for other values
+  drop_act <- 1 # 1 for True and   Not for other values
   drop_KL <- 0 # 1 for TRue and not for other values
   drop_SISAVg <- 0 # for TRue and not for other values
   
@@ -42,6 +42,15 @@ dayList <- c(21,19,17,12)
   data_N_ST2 <- data_N_ST2[,-1]
   data_N_ST2 <- data_N_ST2[,!(names(data_N_ST2) %in% drop)]
  
+  
+  if (drop_act ==1) { 
+    data_F_ST1 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
+    data_N_ST1 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
+    
+    data_F_ST2 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
+    data_N_ST2 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
+    
+  }
   
   
   ##Select Random controllers 

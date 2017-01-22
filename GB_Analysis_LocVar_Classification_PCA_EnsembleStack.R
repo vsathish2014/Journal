@@ -1,57 +1,37 @@
 rm(list=ls())
+ 
 ptm <- proc.time()
 #Load Data
 dayList <- c(21,19,17,12 ) 
 pca_pct <- 0.90
 noSamples <- 121
 #for ( lastDay in dayList){  
-  lastDay <- 21  # 21, 19,17,12
+  lastDay <- 17 # 21, 19,17,12
   rollingWindow <- 10
   
   dbf <-  22-lastDay
   
-  # 1 For Signal Type dist ( Raw); 2 for diff signal; 3 for both combined
+  setwd("C:/IIITD/WIP/Analysis/Journal/Journal")
   
-  #SigTypeInt <- 2
+  locVar <- 0 # 3 for onsidering local variation 3 days
   
-  ## Set flag for dropping calucalted Torque and speed
-  drop_act <- 0 # 1 for True and   Not for other values
-  drop_KL <- 0 # 1 for TRue and not for other values
-  drop_SISAVg <- 0 # for TRue and not for other values
-  
-  setwd("C:/IIITD/WIP/Data/GearboxFailure/Journal/8_Data_Classification")
-  library(xlsx)
-  drop <- c("filename")
-  #if (SigTypeInt==1) {
-  
-  data_F_ST1 <- read.xlsx("Data_classification.xlsx", sheetName="dist_data_F", header=TRUE)
-  data_F_ST1  <- data_F_ST1[,-1]
-  data_F_ST1  <- data_F_ST1[,!(names(data_F_ST1) %in% drop)]
-  
-  data_N_ST1 <- read.xlsx("Data_classification.xlsx", sheetName="dist_data_N", header=TRUE)
-  data_N_ST1 <- data_N_ST1[,-1]
-  data_N_ST1 <- data_N_ST1[,!(names(data_N_ST1) %in% drop)]
-  
-  #} else  if (SigTypeInt==2) 
-  
-  #{
-  data_F_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_F", header=TRUE)
-  data_F_ST2 <- data_F_ST2[,-1]
-  data_F_ST2 <- data_F_ST2[,!(names(data_F_ST2) %in% drop)]
-  
-  data_N_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_N", header=TRUE)
-  data_N_ST2 <- data_N_ST2[,-1]
-  data_N_ST2 <- data_N_ST2[,!(names(data_N_ST2) %in% drop)]
-   
-  if (drop_act ==1) { 
-    data_F_ST1 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
-    data_N_ST1 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
+  if (locVar==0){
+  #for 3 days data for Local variartion
+  source("LocVarClassData0.R") 
     
-    data_F_ST2 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
-    data_N_ST2 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
-    
+  } else if (locVar ==3){
+  #for 3 days data for Local variartion
+     source("LocVarClassData3.R") 
+    data_F_ST1 <- data_F_ST1_c
+    data_N_ST1 <- data_N_ST1_c
+  } else {
+  
+  #for 5 days data for Local variartion
+  #source("LocVarClassData5.R")
+    data_F_ST1 <- data_F_ST1_c
+    data_N_ST1 <- data_N_ST1_c
   }
-  
+
   
   ##Select Random controllers 
  
@@ -59,30 +39,26 @@ noSamples <- 121
  
  # t1_1<-  sample(1:noSamples,11,replace = F) 
   t1_1 <- rep(seq(1:11),11) 
+ 
   sample_data_F_ST1_Trg<- list()
-  sample_data_F_ST2_Trg<- list()
   set.seed(1000)
   for (i in 1:noSamples){
+ 
     sample_data_F_ST1_Trg[[i]]<- subset(data_F_ST1, controllerID !=t1_1[i] )
-    sample_data_F_ST2_Trg[[i]]<- subset(data_F_ST2, controllerID !=t1_1[i] )
-    #sample_data_F_Trg[[i]]<- subset(data_F_T1, controllerID !=t1_1[i] )
+ 
     
     #Consider only Rolling window Data
-    sample_data_F_ST1_Trg[[i]] <- sample_data_F_ST1_Trg[[i]][which(sample_data_F_ST1_Trg[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_F_ST1_Trg[[i]]$SeqNo <= lastDay),   ]
-    sample_data_F_ST2_Trg[[i]] <- sample_data_F_ST2_Trg[[i]][which(sample_data_F_ST2_Trg[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_F_ST2_Trg[[i]]$SeqNo <= lastDay),   ]
+     sample_data_F_ST1_Trg[[i]] <- sample_data_F_ST1_Trg[[i]][which(sample_data_F_ST1_Trg[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_F_ST1_Trg[[i]]$SeqNo <= lastDay),   ]
     
   }
   
+  
   sample_data_F_ST1_Test<- list()
-  sample_data_F_ST2_Test<- list()
   set.seed(1000)
   for (i in 1:noSamples){
+   
     sample_data_F_ST1_Test[[i]]<- subset(data_F_ST1, controllerID ==t1_1[i]  )
-    sample_data_F_ST2_Test[[i]]<- subset(data_F_ST2, controllerID ==t1_1[i]  )
-    #sample_data_F_Test[[i]]<- subset(data_F_T1, controllerID ==t1_1[i]  )  
-    #Consider only Rolling window Data
-    sample_data_F_ST1_Test[[i]] <- sample_data_F_ST1_Test[[i]][which(sample_data_F_ST1_Test[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_F_ST1_Test[[i]]$SeqNo <= lastDay),   ]
-    sample_data_F_ST2_Test[[i]] <- sample_data_F_ST2_Test[[i]][which(sample_data_F_ST2_Test[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_F_ST2_Test[[i]]$SeqNo <= lastDay),   ]
+      sample_data_F_ST1_Test[[i]] <- sample_data_F_ST1_Test[[i]][which(sample_data_F_ST1_Test[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_F_ST1_Test[[i]]$SeqNo <= lastDay),   ]
     
     
   }
@@ -94,194 +70,190 @@ noSamples <- 121
   # t2_1<- sample(1:11,11,replace = F)
   #t2_1 <- rep(seq(1:11),11) 
   t2_1 <- rep(seq(1:11), each=11)
-  sample_data_N_ST1_Trg<- list()
-  sample_data_N_ST2_Trg<- list()
+    sample_data_N_ST1_Trg<- list()
   
   set.seed(1000)
   for (i in 1:noSamples){
-    sample_data_N_ST1_Trg[[i]]<- subset(data_N_ST1, controllerID !=t2_1[i] )
-    sample_data_N_ST2_Trg[[i]]<- subset(data_N_ST2, controllerID !=t2_1[i] )
+      sample_data_N_ST1_Trg[[i]]<- subset(data_N_ST1, controllerID !=t2_1[i] )
     #sample_data_N_Trg[[i]]<- subset(data_N_T1, controllerID !=t1_1[i] )
     
     #Consider only Rolling window Data
-    sample_data_N_ST1_Trg[[i]] <- sample_data_N_ST1_Trg[[i]][which(sample_data_N_ST1_Trg[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_N_ST1_Trg[[i]]$SeqNo <= lastDay),   ]
-    sample_data_N_ST2_Trg[[i]] <- sample_data_N_ST2_Trg[[i]][which(sample_data_N_ST2_Trg[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_N_ST2_Trg[[i]]$SeqNo <= lastDay),   ]
+      sample_data_N_ST1_Trg[[i]] <- sample_data_N_ST1_Trg[[i]][which(sample_data_N_ST1_Trg[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_N_ST1_Trg[[i]]$SeqNo <= lastDay),   ]
     
   }
   
-  sample_data_N_ST1_Test<- list()
-  sample_data_N_ST2_Test<- list()
+   sample_data_N_ST1_Test<- list()
   set.seed(1000)
   for (i in 1:noSamples){
-    sample_data_N_ST1_Test[[i]]<- subset(data_N_ST1, controllerID ==t2_1[i] )
-    sample_data_N_ST2_Test[[i]]<- subset(data_N_ST2, controllerID ==t2_1[i] )
+     sample_data_N_ST1_Test[[i]]<- subset(data_N_ST1, controllerID ==t2_1[i] )
     # sample_data_N_Test[[i]]<- subset(data_N_T1, controllerID ==t1_1[i] )
     
-    #Consider only Rolling window Data
-    sample_data_N_ST1_Test[[i]] <- sample_data_N_ST1_Test[[i]][which(sample_data_N_ST1_Test[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_N_ST1_Test[[i]]$SeqNo <= lastDay),   ]
-    sample_data_N_ST2_Test[[i]] <- sample_data_N_ST2_Test[[i]][which(sample_data_N_ST2_Test[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_N_ST2_Test[[i]]$SeqNo <= lastDay),   ]
+     sample_data_N_ST1_Test[[i]] <- sample_data_N_ST1_Test[[i]][which(sample_data_N_ST1_Test[[i]]$SeqNo >= (lastDay - rollingWindow) & sample_data_N_ST1_Test[[i]]$SeqNo <= lastDay),   ]
     
   }
   
-  sample_data_ST1_Train <- list()
-  sample_data_ST2_Train <- list()
+    sample_data_ST1_Train <- list()
   
   for (i  in 1:noSamples){
     
-    sample_data_ST1_Train[[i]] <- rbind(sample_data_F_ST1_Trg[[i]],sample_data_N_ST1_Trg[[i]])
-    sample_data_ST2_Train[[i]] <- rbind(sample_data_F_ST2_Trg[[i]],sample_data_N_ST2_Trg[[i]])
+      sample_data_ST1_Train[[i]] <- rbind(sample_data_F_ST1_Trg[[i]],sample_data_N_ST1_Trg[[i]])
   }
   
-  sample_data_ST1_Test <- list()
-  sample_data_ST2_Test <- list()
+   sample_data_ST1_Test <- list()
   for (i  in 1:noSamples){
     
-    sample_data_ST1_Test[[i]] <- rbind(sample_data_F_ST1_Test[[i]],sample_data_N_ST1_Test[[i]])
-    sample_data_ST2_Test[[i]] <- rbind(sample_data_F_ST2_Test[[i]],sample_data_N_ST2_Test[[i]])
+     sample_data_ST1_Test[[i]] <- rbind(sample_data_F_ST1_Test[[i]],sample_data_N_ST1_Test[[i]])
   }
   
   
   
   drops <- c("controllerID")
-  sample_data_ST1_Train_1 <- list()
+   sample_data_ST1_Train_1 <- list()
   sample_data_ST1_Test_1 <- list()
-  sample_data_ST2_Train_1 <- list()
-  sample_data_ST2_Test_1 <- list()
   for (i in 1:noSamples){
+     
     sample_data_ST1_Train_1[[i]] <- sample_data_ST1_Train[[i]][ , !(names(sample_data_ST1_Train[[i]]) %in% drops)]
     sample_data_ST1_Test_1[[i]] <- sample_data_ST1_Test[[i]][ , !(names(sample_data_ST1_Test[[i]]) %in% drops)]
-    
-    sample_data_ST2_Train_1[[i]] <- sample_data_ST2_Train[[i]][ , !(names(sample_data_ST2_Train[[i]]) %in% drops)]
-    sample_data_ST2_Test_1[[i]] <- sample_data_ST2_Test[[i]][ , !(names(sample_data_ST2_Test[[i]]) %in% drops)]
   }
   
   
   
   #Randomize rows in the dataframe
+  
+  
   sample_data_ST1_Train_2 <- list()
   sample_data_ST1_Test_2 <- list()
-  
-  sample_data_ST2_Train_2 <- list()
-  sample_data_ST2_Test_2 <- list()
   drop <- c("SeqNo")
   
   for (i in 1:noSamples) {
+ 
+    
     sample_data_ST1_Train_1[[i]] <- sample_data_ST1_Train_1[[i]][sample(1:nrow(sample_data_ST1_Train_1[[i]])), ]
     sample_data_ST1_Train_2[[i]] <- sample_data_ST1_Train_1[[i]][,!(names(sample_data_ST1_Train_1[[i]]) %in% drop) ]
     sample_data_ST1_Test_1[[i]] <- sample_data_ST1_Test_1[[i]][sample(1:nrow(sample_data_ST1_Test_1[[i]])), ]
     sample_data_ST1_Test_2[[i]] <- sample_data_ST1_Test_1[[i]][,!(names(sample_data_ST1_Test_1[[i]]) %in% drop) ]
-    
-    
-    sample_data_ST2_Train_1[[i]] <- sample_data_ST2_Train_1[[i]][sample(1:nrow(sample_data_ST2_Train_1[[i]])), ]
-    sample_data_ST2_Train_2[[i]] <- sample_data_ST2_Train_1[[i]][,!(names(sample_data_ST2_Train_1[[i]]) %in% drop) ]
-    sample_data_ST2_Test_1[[i]] <- sample_data_ST2_Test_1[[i]][sample(1:nrow(sample_data_ST2_Test_1[[i]])), ]
-    sample_data_ST2_Test_2[[i]] <- sample_data_ST2_Test_1[[i]][,!(names(sample_data_ST2_Test_1[[i]]) %in% drop) ]
     
   }
   
   
   
   ## PCA preproessing
+  library(caret)
   movetolast <- function(data, move) {
     data[c(setdiff(names(data), move), move)]
   }
   
   
+ 
   sample_data_ST1_Train_3 <- list()
   sample_data_ST1_Test_3 <- list()
   sample_data_ST1_Train_4 <- list()
   sample_data_ST1_Test_4 <- list()
   
-  sample_data_ST2_Train_3 <- list()
-  sample_data_ST2_Test_3 <- list()
-  sample_data_ST2_Train_4 <- list()
-  sample_data_ST2_Test_4 <- list()
-  
   for (i  in 1:noSamples) {
     sample_data_ST1_Train_3[[i]] <- sample_data_ST1_Train_2[[i]]
     sample_data_ST1_Train_3[[i]] <- sample_data_ST1_Train_3[[i]][,sapply(sample_data_ST1_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-    preprocessParams_ST1 <- preProcess(sample_data_ST1_Train_3[[i]], method=c("center", "scale", "pca"),thresh = pca_pct)
+    preprocessParams_ST1 <- preProcess(sample_data_ST1_Train_3[[i]], method=c("center", "scale", "pca"),pcaComp = 20)
     sample_data_ST1_Train_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Train_3[[i]])
     sample_data_ST1_Train_4[[i]] <- movetolast(sample_data_ST1_Train_4[[i]], c("Class"))
     sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_2[[i]]
     #sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_3[[i]][,sapply(sample_data_ST1_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     sample_data_ST1_Test_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Test_3[[i]])
     sample_data_ST1_Test_4[[i]] <- movetolast(sample_data_ST1_Test_4[[i]], c("Class"))
-    
-    
-    sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_2[[i]]
-    sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_3[[i]][,sapply(sample_data_ST2_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-    preprocessParams_ST2 <- preProcess(sample_data_ST2_Train_3[[i]], method=c("center", "scale", "pca"),thresh = pca_pct)
-    sample_data_ST2_Train_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Train_3[[i]])
-    sample_data_ST2_Train_4[[i]] <- movetolast(sample_data_ST2_Train_4[[i]], c("Class"))
-    sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_2[[i]]
-    #sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-    sample_data_ST2_Test_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Test_3[[i]])
-    sample_data_ST2_Test_4[[i]] <- movetolast(sample_data_ST2_Test_4[[i]], c("Class"))
-    
+    sample_data_ST1_Test_4[[i]] <- sample_data_ST1_Test_4[[i]][grepl("PC|Class", names(sample_data_ST1_Test_4[[i]]))]
   }
-
-## For RF class  changed to numeric
-for (i in 1:noSamples){
-  sample_data_ST1_Train_4[[i]]$Class <- ifelse(sample_data_ST1_Train_4[[i]]$Class=="F",1,0)
-  sample_data_ST1_Test_4[[i]]$Class <- ifelse(sample_data_ST1_Test_4[[i]]$Class=="F",1,0)
-  sample_data_ST2_Train_4[[i]]$Class <- ifelse(sample_data_ST2_Train_4[[i]]$Class=="F",1,0)
-  sample_data_ST2_Test_4[[i]]$Class <- ifelse(sample_data_ST2_Test_4[[i]]$Class=="F",1,0)
-}
-
+  
+ 
 # Model Development
 
 library(caret)
-  rfModel_ST1 <- list()
-  rfModel_ST2 <- list()
+ 
+ 
 
 ctrl <- trainControl(method = "repeatedcv",
                      repeats = 5,
+                     savePredictions="final",
+                     summaryFunction=twoClassSummary,
                      classProbs = TRUE)
-for (i in 1:noSamples ){
-  # train a logistic regression model
  
-  rfModel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_4[[i]],method="rf",  ntree=75, importance = TRUE, preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
-  rfModel_ST2[[i]] <- train(Class~.,data =  sample_data_ST2_Train_4[[i]],method="rf",  ntree=75, importance = TRUE, preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
-  
+
+library("caret")
+library("mlbench")
+library("pROC")
+
+library("rpart")
+library("caretEnsemble")
+model_list <- list()
+for (i in 1: noSamples) { 
+model_list[[i]] <- caretList(
+  Class~., data=sample_data_ST1_Train_4[[i]],
+  trControl=ctrl,
+  methodList=c("glm", "rpart","LogitBoost","svmRadial")
+)
+}
+ 
+glm_ensemble <- list()
+for (i in 1: noSamples) { 
+glm_ensemble[[i]] <- caretStack(
+  model_list[[i]],
+  method="glm",
+  metric="ROC",
+  trControl=trainControl(
+    method="boot",
+    number=10,
+    savePredictions="final",
+    classProbs=TRUE,
+    summaryFunction=twoClassSummary
+  )
+)
 }
 
-  
-## Save variable Importance
-df_varImp_ST1 <-   varImp(rfModel_ST1[[i]]$finalModel) 
-df_varImp_ST1<- cbind(Measurement = rownames(df_varImp_ST1), df_varImp_ST1) 
-df_varImp_ST1$ID <- 1 
+x_test_ST1 <- list()
+y_test_ST1 <- list()
+model_preds <- list()
 
-df_varImp_ST2 <-   varImp(rfModel_ST2[[i]]$finalModel) 
-df_varImp_ST2<- cbind(Measurement = rownames(df_varImp_ST2), df_varImp_ST2) 
-df_varImp_ST2$ID <- 1 
+for (i in 1: noSamples ){ 
+x_last_ST1 <-  ncol(sample_data_ST1_Test_4[[i]])-1
+y_last_ST1 <-  ncol(sample_data_ST1_Test_4[[i]])
+x_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,1:x_last_ST1]
+y_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,y_last_ST1]
+ 
+library("caTools")
+model_preds[[i]] <- lapply(model_list[[i]], predict, newdata=sample_data_ST1_Test_4[[i]], type="prob")
+model_preds[[i]]$glm  <- lapply(list(model_preds[[i]]$glm) ,  function(x) x[,"F"])
+model_preds[[i]]$rpart  <- lapply(list(model_preds[[i]]$rpart) ,  function(x) x[,"F"])
+model_preds[[i]]$LogitBoost  <- lapply(list(model_preds[[i]]$LogitBoost) ,  function(x) x[,"F"])
+model_preds[[i]]$svmRadial  <- lapply(list(model_preds[[i]]$svmRadial) ,  function(x) x[,"F"])
+model_preds[[i]] <- data.frame(model_preds[[i]])
 
-for (i in 2:noSamples){
-  temp_ST1<- varImp(rfModel_ST1[[i]]$finalModel)
-  temp_ST1<- cbind(Measurement = rownames(temp_ST1), temp_ST1) 
-  temp_ST1$ID <- i
-  df_varImp_ST1 <- rbind(df_varImp_ST1, temp_ST1 )
-  
-  temp_ST2<- varImp(rfModel_ST2[[i]]$finalModel)
-  temp_ST2<- cbind(Measurement = rownames(temp_ST2), temp_ST2) 
-  temp_ST2$ID <- i
-  df_varImp_ST2 <- rbind(df_varImp_ST2, temp_ST2 )
-  
+names(model_preds[[i]]) <- c("glm", "rpart","LogitBoost","svmRadial")
 }
-row.names(df_varImp_ST1) <- 1:nrow(df_varImp_ST1)
-row.names(df_varImp_ST2) <- 1:nrow(df_varImp_ST2)
-
-## Write prediction prob and actual to csv
-fileVarImp_ST1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","VarImportance","Signal_Type_1", "_dbf_",dbf,"_PCA_RF.csv")
-fileVarImp_ST2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","VarImportance","Signal_Type_2", "_dbf_",dbf,"_PCA_RF.csv")
-
-
-df_varImp_ST1 <- data.frame(df_varImp_ST1)
-write.table(df_varImp_ST1,fileVarImp_ST1,sep = ",", append = T,col.names = T)
-df_varImp_ST2 <- data.frame(df_varImp_ST2)
-write.table(df_varImp_ST2,fileVarImp_ST2,sep = ",", append = T,col.names = T)
  
+model_preds2 <- list()
+accuracy <- list()
+for (i in 1: noSamples) {
+model_preds2[[i]] <- model_preds[[i]]
+model_preds2[[i]]$ensemble <- predict(glm_ensemble[[i]], newdata=x_test_ST1[[i]], type="prob")
+CF <- coef(glm_ensemble[[i]]$ens_model$finalModel)[-1]
+accuracy[[i]] <- colAUC(model_preds2[[i]], y_test_ST1[[i]])
+}
+
  
+library(plyr)
+accuracy_all <- ldply(accuracy, data.frame)
+
+setwd("C:/IIITD/WIP/Analysis/Journal/TestResults")
+write.csv(accuracy_all,"C:/IIITD/WIP/Analysis/Journal/TestResults/accuracy_all_SigType1_PCA_locvar0.csv" )
+
+
+
+
+
+
+
+
+
+
 
 ## Make predictions
 
@@ -303,19 +275,7 @@ Accuracy_ST2 <- list()
 
 
 for (i in 1: noSamples ){
-  x_last_ST1 <-  ncol(sample_data_ST1_Test_4[[i]])-1
-  y_last_ST1 <-  ncol(sample_data_ST1_Test_4[[i]])
-  x_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,1:x_last_ST1]
-  y_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,y_last_ST1]
-  
-  predictions_ST1[[i]] <- predict(rfModel_ST1[[i]], x_test_ST1[[i]] )
-  predictions_prob_ST1[[i]] <-  predictions_ST1[[i]]
-  predictions_ST1[[i]] <- ifelse(predictions_ST1[[i]] > 0.5,1,0)
-  #predictions_prob_ST1[[i]] <- predict(glmModel_ST1[[i]], x_test_ST1[[i]] ,type="prob",probability = TRUE)
-  cm_ST1[[i]] <- confusionMatrix(predictions_ST1[[i]] , as.factor(y_test_ST1[[i]]))
-  misClasificError_ST1[[i]] <- mean(predictions_ST1[[i]] != y_test_ST1[[i]])
-  Accuracy_ST1[[i]] <- 1 - misClasificError_ST1[[i]]
-  
+
   
   x_last_ST2 <-  ncol(sample_data_ST2_Test_4[[i]])-1
   y_last_ST2 <-  ncol(sample_data_ST2_Test_4[[i]])
@@ -331,7 +291,7 @@ for (i in 1: noSamples ){
   
 }
 
-mean(sapply(Accuracy_ST1,mean))
+ 
 mean(sapply(Accuracy_ST2,mean))
 
 

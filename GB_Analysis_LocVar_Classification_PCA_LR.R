@@ -1,63 +1,38 @@
 rm(list=ls())
 ptm <- proc.time()
+library(caret)
+library(e1071)
+library(ROCR)
 #Load Data
-dayList <- c(21,19,17,12 ) 
-pca_pct <- 0.90
 noSamples <- 121
+#dayList <- c(21,19, 17,12 ) 
+  
 #for ( lastDay in dayList){  
-  lastDay <- 21  # 21, 19,17,12
+  lastDay <- 17 # 21, 19,17,12
   rollingWindow <- 10
+  pca_pct <- 0.90
   
   dbf <-  22-lastDay
   
-  # 1 For Signal Type dist ( Raw); 2 for diff signal; 3 for both combined
+  setwd("C:/IIITD/WIP/Analysis/Journal/Journal")
+  #for 3 days data for Local variartion
+  #   source("LocVarClassData.R") 
   
-  #SigTypeInt <- 2
-  
-  ## Set flag for dropping calucalted Torque and speed
-  drop_act <- 0 # 1 for True and   Not for other values
-  drop_KL <- 0 # 1 for TRue and not for other values
-  drop_SISAVg <- 0 # for TRue and not for other values
-  
-  setwd("C:/IIITD/WIP/Data/GearboxFailure/Journal/8_Data_Classification")
-  library(xlsx)
-  drop <- c("filename")
-  #if (SigTypeInt==1) {
-  
-  data_F_ST1 <- read.xlsx("Data_classification.xlsx", sheetName="dist_data_F", header=TRUE)
-  data_F_ST1  <- data_F_ST1[,-1]
-  data_F_ST1  <- data_F_ST1[,!(names(data_F_ST1) %in% drop)]
-  
-  data_N_ST1 <- read.xlsx("Data_classification.xlsx", sheetName="dist_data_N", header=TRUE)
-  data_N_ST1 <- data_N_ST1[,-1]
-  data_N_ST1 <- data_N_ST1[,!(names(data_N_ST1) %in% drop)]
-  
-  #} else  if (SigTypeInt==2) 
-  
-  #{
-  data_F_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_F", header=TRUE)
-  data_F_ST2 <- data_F_ST2[,-1]
-  data_F_ST2 <- data_F_ST2[,!(names(data_F_ST2) %in% drop)]
-  
-  data_N_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_N", header=TRUE)
-  data_N_ST2 <- data_N_ST2[,-1]
-  data_N_ST2 <- data_N_ST2[,!(names(data_N_ST2) %in% drop)]
-   
-  if (drop_act ==1) { 
-    data_F_ST1 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
-    data_N_ST1 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
+  #for 5 days data for Local variartion
+   source("LocVarClassData5.R")
+
+  data_F_ST1 <- data_F_ST1_c
+  data_F_ST2 <- data_F_ST2_c
     
-    data_F_ST2 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
-    data_N_ST2 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
-    
-  }
+  data_N_ST1 <- data_N_ST1_c
+  data_N_ST2 <- data_N_ST2_c
+  
   
   
   ##Select Random controllers 
  
   set.seed(1000)
  
- # t1_1<-  sample(1:noSamples,11,replace = F) 
   t1_1 <- rep(seq(1:11),11) 
   sample_data_F_ST1_Trg<- list()
   sample_data_F_ST2_Trg<- list()
@@ -91,8 +66,7 @@ noSamples <- 121
   
   # set.seed(2000)
   # t2<- replicate(11,sample(1:11,3,replace = F))
-  # t2_1<- sample(1:11,11,replace = F)
-  #t2_1 <- rep(seq(1:11),11) 
+  #t2_1 <- rep(seq(1:11),11)
   t2_1 <- rep(seq(1:11), each=11)
   sample_data_N_ST1_Trg<- list()
   sample_data_N_ST2_Trg<- list()
@@ -210,18 +184,19 @@ noSamples <- 121
     
     
     sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_2[[i]]
-    sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_3[[i]][,sapply(sample_data_ST2_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
+     sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_3[[i]][,sapply(sample_data_ST2_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     preprocessParams_ST2 <- preProcess(sample_data_ST2_Train_3[[i]], method=c("center", "scale", "pca"),thresh = pca_pct)
     sample_data_ST2_Train_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Train_3[[i]])
     sample_data_ST2_Train_4[[i]] <- movetolast(sample_data_ST2_Train_4[[i]], c("Class"))
     sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_2[[i]]
+    #Project test data to pca - do not remove the columns with zeros
     #sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     sample_data_ST2_Test_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Test_3[[i]])
     sample_data_ST2_Test_4[[i]] <- movetolast(sample_data_ST2_Test_4[[i]], c("Class"))
     
   }
 
-## For RF class  changed to numeric
+## For Logistic regression class need to be cahnged to numeric
 for (i in 1:noSamples){
   sample_data_ST1_Train_4[[i]]$Class <- ifelse(sample_data_ST1_Train_4[[i]]$Class=="F",1,0)
   sample_data_ST1_Test_4[[i]]$Class <- ifelse(sample_data_ST1_Test_4[[i]]$Class=="F",1,0)
@@ -232,55 +207,24 @@ for (i in 1:noSamples){
 # Model Development
 
 library(caret)
-  rfModel_ST1 <- list()
-  rfModel_ST2 <- list()
+glmModel_ST1 <- list()
+glmModel_ST2 <- list()
 
 ctrl <- trainControl(method = "repeatedcv",
                      repeats = 5,
                      classProbs = TRUE)
 for (i in 1:noSamples ){
   # train a logistic regression model
- 
-  rfModel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_4[[i]],method="rf",  ntree=75, importance = TRUE, preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
-  rfModel_ST2[[i]] <- train(Class~.,data =  sample_data_ST2_Train_4[[i]],method="rf",  ntree=75, importance = TRUE, preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
+  
+  glmModel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_4[[i]],method="glm", family=binomial(),  preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
+  glmModel_ST2[[i]] <- train(Class~.,data =  sample_data_ST2_Train_4[[i]],method="glm", family=binomial(),  preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
+  
   
 }
 
   
-## Save variable Importance
-df_varImp_ST1 <-   varImp(rfModel_ST1[[i]]$finalModel) 
-df_varImp_ST1<- cbind(Measurement = rownames(df_varImp_ST1), df_varImp_ST1) 
-df_varImp_ST1$ID <- 1 
-
-df_varImp_ST2 <-   varImp(rfModel_ST2[[i]]$finalModel) 
-df_varImp_ST2<- cbind(Measurement = rownames(df_varImp_ST2), df_varImp_ST2) 
-df_varImp_ST2$ID <- 1 
-
-for (i in 2:noSamples){
-  temp_ST1<- varImp(rfModel_ST1[[i]]$finalModel)
-  temp_ST1<- cbind(Measurement = rownames(temp_ST1), temp_ST1) 
-  temp_ST1$ID <- i
-  df_varImp_ST1 <- rbind(df_varImp_ST1, temp_ST1 )
-  
-  temp_ST2<- varImp(rfModel_ST2[[i]]$finalModel)
-  temp_ST2<- cbind(Measurement = rownames(temp_ST2), temp_ST2) 
-  temp_ST2$ID <- i
-  df_varImp_ST2 <- rbind(df_varImp_ST2, temp_ST2 )
-  
-}
-row.names(df_varImp_ST1) <- 1:nrow(df_varImp_ST1)
-row.names(df_varImp_ST2) <- 1:nrow(df_varImp_ST2)
-
-## Write prediction prob and actual to csv
-fileVarImp_ST1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","VarImportance","Signal_Type_1", "_dbf_",dbf,"_PCA_RF.csv")
-fileVarImp_ST2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","VarImportance","Signal_Type_2", "_dbf_",dbf,"_PCA_RF.csv")
-
-
-df_varImp_ST1 <- data.frame(df_varImp_ST1)
-write.table(df_varImp_ST1,fileVarImp_ST1,sep = ",", append = T,col.names = T)
-df_varImp_ST2 <- data.frame(df_varImp_ST2)
-write.table(df_varImp_ST2,fileVarImp_ST2,sep = ",", append = T,col.names = T)
  
+
  
 
 ## Make predictions
@@ -308,7 +252,7 @@ for (i in 1: noSamples ){
   x_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,1:x_last_ST1]
   y_test_ST1[[i]] <- sample_data_ST1_Test_4[[i]][,y_last_ST1]
   
-  predictions_ST1[[i]] <- predict(rfModel_ST1[[i]], x_test_ST1[[i]] )
+  predictions_ST1[[i]] <- predict(glmModel_ST1[[i]], x_test_ST1[[i]] )
   predictions_prob_ST1[[i]] <-  predictions_ST1[[i]]
   predictions_ST1[[i]] <- ifelse(predictions_ST1[[i]] > 0.5,1,0)
   #predictions_prob_ST1[[i]] <- predict(glmModel_ST1[[i]], x_test_ST1[[i]] ,type="prob",probability = TRUE)
@@ -321,7 +265,7 @@ for (i in 1: noSamples ){
   y_last_ST2 <-  ncol(sample_data_ST2_Test_4[[i]])
   x_test_ST2[[i]] <- sample_data_ST2_Test_4[[i]][,1:x_last_ST2]
   y_test_ST2[[i]] <- sample_data_ST2_Test_4[[i]][,y_last_ST2]
-  predictions_ST2[[i]] <- predict(rfModel_ST2[[i]], x_test_ST2[[i]] )
+  predictions_ST2[[i]] <- predict(glmModel_ST2[[i]], x_test_ST2[[i]] )
   predictions_prob_ST2[[i]] <-  predictions_ST2[[i]]
   predictions_ST2[[i]] <- ifelse(predictions_ST2[[i]] > 0.5,1,0)
   #predictions_prob_ST2[[i]] <- predict(glmModel_ST2[[i]], x_test_ST2[[i]] ,type="prob",probability = TRUE)
@@ -339,14 +283,14 @@ mean(sapply(Accuracy_ST2,mean))
 
 
 ## Write prediction prob and actual to csv
-filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf,"_PCA_RF.csv")
+filePredAct <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","Pred_Act", "_dbf_",dbf,"_PCA_LR.csv")
 
 
-pred_act <- data.frame(cbind(1,y_test_ST2[[1]],predictions_prob_ST1[[1]],predictions_prob_ST2[[1]]))
+pred_act <- data.frame(cbind(1, y_test_ST2[[1]],predictions_prob_ST1[[1]],predictions_prob_ST2[[1]]))
 write.table(pred_act,filePredAct,sep = ",", append = T,col.names = T)
 
 for (i in 2:noSamples){
-  pred_act <- data.frame(cbind(i,y_test_ST2[[i]],predictions_prob_ST1[[i]],predictions_prob_ST2[[i]]))
+  pred_act <- data.frame(cbind(i, y_test_ST2[[i]],predictions_prob_ST1[[i]],predictions_prob_ST2[[i]]))
   write.table(pred_act,filePredAct, sep = ",",append = T,col.names = F)
 }
 
@@ -354,8 +298,8 @@ for (i in 2:noSamples){
 
 ## Write the cm to csv
 
-fileCM_ST1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_1","_dbf_",dbf,"_PCA_RF.csv")
-fileCM_ST2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_2","_dbf_",dbf,"_PCA_RF.csv")
+fileCM_ST1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_1","_dbf_",dbf,"_PCA_LR.csv")
+fileCM_ST2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","CM_","SigType_2","_dbf_",dbf,"_PCA_LR.csv")
 
 write.table(cm_ST1[[1]]$table,fileCM_ST1,sep = "," )
 write.table(cm_ST2[[1]]$table,fileCM_ST2,sep = "," )
@@ -391,12 +335,12 @@ prf_ST2 <- list()
 
 library(ROCR)
 for (i in 1 : noSamples) {
-  p_ST1[[i]] <- predict(rfModel_ST1[[i]], newdata=x_test_ST1[[i]])
+  p_ST1[[i]] <- predict(glmModel_ST1[[i]], newdata=x_test_ST1[[i]])
   #p_ST1[[i]]  <- ifelse( p_ST1[[i]]<0.5,0,1)
   pr_ST1[[i]] <- prediction(  p_ST1[[i]],y_test_ST1[[i]] ) # Reveresed the polarity changed to N
   prf_ST1[[i]] <- performance(pr_ST1[[i]], measure = "tpr", x.measure = "fpr")
   
-  p_ST2[[i]] <- predict(rfModel_ST2[[i]], newdata=x_test_ST2[[i]])
+  p_ST2[[i]] <- predict(glmModel_ST2[[i]], newdata=x_test_ST2[[i]])
   pr_ST2[[i]] <- prediction(  p_ST2[[i]],y_test_ST2[[i]] ) # Reveresed the polarity changed to N
   prf_ST2[[i]] <- performance(pr_ST2[[i]], measure = "tpr", x.measure = "fpr")
   
@@ -475,13 +419,13 @@ labs_ST2 <- round(aucFinal_ST2$auc,2)
 names(labs_ST2) <- 'auc'
 
 ##plot and save as pdf
-filename1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_1", "_PCA_RF.pdf")
+filename1 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_1", "_PCA_LR.pdf")
 a <- ggplot(tpr_fpr_ST1, aes(FPRate_ST1,TPRate_ST1)) +facet_wrap(~testno,ncol=11)
 a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
 a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST1),fontface =2)
 ggsave(filename1,width = 7, height = 7)
 
-filename2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_2", "_PCA_RF.pdf")
+filename2 <- paste0("C:/IIITD/WIP/Analysis/Journal/Figures/","ROC_Curve_dbf_",dbf,"_SigType_2", "_PCA_LR.pdf")
 a <- ggplot(tpr_fpr_ST2, aes(FPRate_ST2,TPRate_ST2)) +facet_wrap(~testno,ncol=11)
 a<- a+  geom_line() + theme(axis.text.x = element_text(size = 8,angle = 90))
 a+ annotate("text", x = 0.2, y = .8, label =paste("auc =", labs_ST2),fontface =1)

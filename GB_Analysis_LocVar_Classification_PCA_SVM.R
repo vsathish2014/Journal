@@ -9,53 +9,24 @@ dayList <- c(21,19,17,12 )
 #for (j in NormalRobotList){
   #lastDay <- dayList[1]
   #for ( lastDay in dayList){  
-     lastDay <- 12 # 21, 19,17,12
+     lastDay <- 17 # 21, 19,17,12
     rollingWindow <- 10
     
     dbf <-  22-lastDay
     
-    # 1 For Signal Type dist ( Raw); 2 for diff signal; 3 for both combined
+    setwd("C:/IIITD/WIP/Analysis/Journal/Journal")
     
-    #SigTypeInt <- 2
+    #for 3 days data for Local variartion
+    #   source("LocVarClassData.R") 
     
-    ## Set flag for dropping calucalted Torque and speed
-    drop_act <- 0 # 1 for True and   Not for other values
-    drop_KL <- 0 # 1 for TRue and not for other values
-    drop_SISAVg <- 0 # for TRue and not for other values
+    #for 5 days data for Local variartion
+    source("LocVarClassData5.R") 
     
-    setwd("C:/IIITD/WIP/Data/GearboxFailure/Journal/8_Data_Classification")
-    library(xlsx)
-    drop <- c("filename")
-    #if (SigTypeInt==1) {
+    data_F_ST1 <- data_F_ST1_c
+    data_F_ST2 <- data_F_ST2_c
     
-    data_F_ST1 <- read.xlsx("Data_classification.xlsx", sheetName="dist_data_F", header=TRUE)
-    data_F_ST1  <- data_F_ST1[,-1]
-    data_F_ST1  <- data_F_ST1[,!(names(data_F_ST1) %in% drop)]
-    
-    data_N_ST1 <- read.xlsx("Data_classification.xlsx", sheetName="dist_data_N", header=TRUE)
-    data_N_ST1 <- data_N_ST1[,-1]
-    data_N_ST1 <- data_N_ST1[,!(names(data_N_ST1) %in% drop)]
-    
-    #} else  if (SigTypeInt==2) 
-    
-    #{
-    data_F_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_F", header=TRUE)
-    data_F_ST2 <- data_F_ST2[,-1]
-    data_F_ST2 <- data_F_ST2[,!(names(data_F_ST2) %in% drop)]
-    
-    data_N_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_N", header=TRUE)
-    data_N_ST2 <- data_N_ST2[,-1]
-    data_N_ST2 <- data_N_ST2[,!(names(data_N_ST2) %in% drop)]
-    
-    
-    if (drop_act ==1) { 
-      data_F_ST1 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
-      data_N_ST1 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
-      
-      data_F_ST2 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
-      data_N_ST2 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
-      
-    }
+    data_N_ST1 <- data_N_ST1_c
+    data_N_ST2 <- data_N_ST2_c
     
     
     ##Select subset of controllers 

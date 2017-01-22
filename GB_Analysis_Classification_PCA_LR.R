@@ -1,12 +1,16 @@
 rm(list=ls())
 ptm <- proc.time()
+library(caret)
+library(e1071)
+library(ROCR)
 #Load Data
 noSamples <- 121
 #dayList <- c(21,19, 17,12 ) 
   
 #for ( lastDay in dayList){  
-  lastDay <- 12 # 21, 19,17,12
+  lastDay <- 19 # 21, 19,17,12
   rollingWindow <- 10
+  pca_pct <- 0.90
   
   dbf <-  22-lastDay
   
@@ -18,7 +22,7 @@ noSamples <- 121
   drop_act <- 0 # 1 for True and   Not for other values
   drop_KL <- 0 # 1 for TRue and not for other values
   drop_SISAVg <- 0 # for TRue and not for other values
-  
+  only_act <- 0
   setwd("C:/IIITD/WIP/Data/GearboxFailure/Journal/8_Data_Classification")
   library(xlsx)
   drop <- c("filename")
@@ -42,6 +46,28 @@ noSamples <- 121
   data_N_ST2 <- read.xlsx("Data_classification.xlsx", sheetName="diff_data_N", header=TRUE)
   data_N_ST2 <- data_N_ST2[,-1]
   data_N_ST2 <- data_N_ST2[,!(names(data_N_ST2) %in% drop)]
+  
+  
+  
+  
+  if (drop_act ==1) { 
+    data_F_ST1 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
+    data_N_ST1 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
+    
+    data_F_ST2 <- data_F_ST1[, !grepl("act",colnames(data_F_ST1))] 
+    data_N_ST2 <- data_N_ST1[, !grepl("act",colnames(data_N_ST1))] 
+    
+  }
+  
+  if (only_act ==1){ 
+    data_F_ST1 <- data_F_ST1[,  grepl("act|controllerID|SeqNo|Class",colnames(data_F_ST1))] 
+    data_N_ST1 <- data_N_ST1[,  grepl("act|controllerID|SeqNo|Class",colnames(data_N_ST1))] 
+    
+    data_F_ST2 <- data_F_ST1[,  grepl("act|controllerID|SeqNo|Class",colnames(data_F_ST1))] 
+    data_N_ST2 <- data_N_ST1[,  grepl("act|controllerID|SeqNo|Class",colnames(data_N_ST1))] 
+    
+  }
+  
   
   
   ##Select Random controllers 
@@ -189,18 +215,19 @@ noSamples <- 121
   for (i  in 1:noSamples) {
     sample_data_ST1_Train_3[[i]] <- sample_data_ST1_Train_2[[i]]
     sample_data_ST1_Train_3[[i]] <- sample_data_ST1_Train_3[[i]][,sapply(sample_data_ST1_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-    preprocessParams_ST1 <- preProcess(sample_data_ST1_Train_3[[i]], method=c("center", "scale", "pca"),thresh = 0.99)
+    preprocessParams_ST1 <- preProcess(sample_data_ST1_Train_3[[i]], method=c("center", "scale", "pca"),thresh = pca_pct)
     sample_data_ST1_Train_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Train_3[[i]])
     sample_data_ST1_Train_4[[i]] <- movetolast(sample_data_ST1_Train_4[[i]], c("Class"))
     sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_2[[i]]
     #sample_data_ST1_Test_3[[i]] <- sample_data_ST1_Test_3[[i]][,sapply(sample_data_ST1_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     sample_data_ST1_Test_4[[i]] <- predict(preprocessParams_ST1 , sample_data_ST1_Test_3[[i]])
     sample_data_ST1_Test_4[[i]] <- movetolast(sample_data_ST1_Test_4[[i]], c("Class"))
+    sample_data_ST1_Test_4[[i]] <- sample_data_ST1_Test_4[[i]][grepl("PC|Class", names(sample_data_ST1_Test_4[[i]]))]
     
     
     sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_2[[i]]
      sample_data_ST2_Train_3[[i]] <- sample_data_ST2_Train_3[[i]][,sapply(sample_data_ST2_Train_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
-    preprocessParams_ST2 <- preProcess(sample_data_ST2_Train_3[[i]], method=c("center", "scale", "pca"),thresh = 0.99)
+    preprocessParams_ST2 <- preProcess(sample_data_ST2_Train_3[[i]], method=c("center", "scale", "pca"),thresh = pca_pct)
     sample_data_ST2_Train_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Train_3[[i]])
     sample_data_ST2_Train_4[[i]] <- movetolast(sample_data_ST2_Train_4[[i]], c("Class"))
     sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_2[[i]]
@@ -208,6 +235,8 @@ noSamples <- 121
     #sample_data_ST2_Test_3[[i]] <- sample_data_ST2_Test_3[[i]][,sapply(sample_data_ST2_Test_3[[i]] , function(v) var(v, na.rm=TRUE)!=0)]
     sample_data_ST2_Test_4[[i]] <- predict(preprocessParams_ST2 , sample_data_ST2_Test_3[[i]])
     sample_data_ST2_Test_4[[i]] <- movetolast(sample_data_ST2_Test_4[[i]], c("Class"))
+    sample_data_ST2_Test_4[[i]] <- sample_data_ST2_Test_4[[i]][grepl("PC|Class", names(sample_data_ST2_Test_4[[i]]))]
+    
     
   }
 

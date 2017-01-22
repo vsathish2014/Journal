@@ -15,7 +15,7 @@ noSamples <- 121
   #SigTypeInt <- 2
   
   ## Set flag for dropping calucalted Torque and speed
-  drop_act <- 1 # 1 for True and   Not for other values
+  drop_act <- 0 # 1 for True and   Not for other values
   drop_KL <- 0 # 1 for TRue and not for other values
   drop_SISAVg <- 0 # for TRue and not for other values
   
@@ -185,16 +185,27 @@ noSamples <- 121
   library(caret)
   SVMmodel_ST1 <- list()
   SVMmodel_ST2 <- list()
-  ctrl <- trainControl(method = "repeatedcv",
-                       repeats = 5,
+#   ctrl <- trainControl(method = "repeatedcv",
+#                        repeats = 5,
+#                        classProbs = TRUE)
+  
+  ctrl <- trainControl(method = "boot",
+                       repeats = 10,                  
+                       savePredictions="final",
+                       summaryFunction=twoClassSummary,
                        classProbs = TRUE)
+  
   for (i in 1 : noSamples ){
     # train a SVM model
     
-    SVMmodel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_2[[i]],method="svmRadial",preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
-    SVMmodel_ST2[[i]] <- train(Class~.,data =  sample_data_ST2_Train_2[[i]],method="svmRadial",preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
+#     SVMmodel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_2[[i]],method="svmRadial",preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
+#     SVMmodel_ST2[[i]] <- train(Class~.,data =  sample_data_ST2_Train_2[[i]],method="svmRadial",preProc = c("center", "scale"),tuneLength = 9, trControl=ctrl )
+#     
+    SVMmodel_ST1[[i]] <- train(Class~.,data =  sample_data_ST1_Train_2[[i]],method="svmRadial",preProc = c("center", "scale"),  trControl=ctrl,  metric="ROC" )
+    SVMmodel_ST2[[i]] <- train(Class~.,data =  sample_data_ST2_Train_2[[i]],method="svmRadial",preProc = c("center", "scale"),  trControl=ctrl,   metric="ROC")
     
-  }
+    
+  } 
   
   
   ## Make predictions
@@ -232,15 +243,21 @@ noSamples <- 121
   
   for (i in 1: noSamples){
  
-    predictions_ST1[[i]] <- predict(SVMmodel_ST1[[i]], x_test_ST1[[i]] )
-    predictions_prob_ST1[[i]] <- predict(SVMmodel_ST1[[i]], x_test_ST1[[i]] ,type="prob",probability = TRUE)
+    predictions_prob_ST1[[i]] <- predict(SVMmodel_ST1[[i]], sample_data_ST1_Test_2[[i]] ,type="prob" )
+    predictions_prob_ST1[[i]] <- lapply(list(predictions_prob_ST1[[i]]), function(x) x[,"F"])
+    predictions_prob_ST1[[i]] <- data.frame(predictions_prob_ST1[[i]]) 
+    names(  predictions_prob_ST1[[i]]) <- c("F")
+    # predictions_prob_ST1[[i]]<- lapply(list(SVMmodel_ST1[[i]]),predict,newdata=sample_data_ST1_Test_2[[i]], type="prob")
+    predictions_prob_ST1[[i]] <- ifelse(  predictions_prob_ST1[[i]]$F > 0.5, "F","N")
+    predictions_ST1[[i]] <- as.factor(predictions_ST1[[i]])
     cm_ST1[[i]] <- confusionMatrix( predictions_ST1[[i]]  , as.factor(y_test_ST1[[i]]))
     misClasificError_ST1[[i]] <- mean(predictions_ST1[[i]] != y_test_ST1[[i]])
     Accuracy_ST1[[i]] <- 1 - misClasificError_ST1[[i]]
     
  
     predictions_ST2[[i]] <- predict(SVMmodel_ST2[[i]], x_test_ST2[[i]] )
-    predictions_prob_ST2[[i]] <- predict(SVMmodel_ST2[[i]], x_test_ST2[[i]] ,type="prob",probability = TRUE)
+  #  predictions_prob_ST2[[i]] <- predict(SVMmodel_ST2[[i]], x_test_ST2[[i]] ,type="prob",probability = TRUE)
+    predictions_prob_ST2[[i]] <- predict(SVMmodel_ST2[[i]], x_test_ST2[[i]] ,type="prob" )
     cm_ST2[[i]] <- confusionMatrix(predictions_ST2[[i]] , as.factor(y_test_ST2[[i]]))
     misClasificError_ST2[[i]] <- mean(predictions_ST2[[i]] != y_test_ST2[[i]])
     Accuracy_ST2[[i]] <- 1 - misClasificError_ST2[[i]]
