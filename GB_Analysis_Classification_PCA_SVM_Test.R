@@ -320,6 +320,27 @@ noSamples <- 121
   
   mean(sapply(Accuracy_ST1,mean))
   mean(sapply(Accuracy_ST2,mean))
+  mean(sapply(Accuracy_ST1_N,mean))
+  mean(sapply(Accuracy_ST2_N,mean))
+  
+  library(plyr)
+  predictions_prob_ST1_all <- ldply(  predictions_prob_ST1, data.frame)
+  y_test_ST1_all <- ldply(    y_test_ST1, data.frame)
+  predictions_prob_ST1_all <-cbind( predictions_prob_ST1_all, y_test_ST1_all)
+  predictions_prob_ST2_all <- ldply(  predictions_prob_ST2, data.frame)
+  y_test_ST2_all <- ldply(    y_test_ST2, data.frame)
+  predictions_prob_ST2_all <-cbind( predictions_prob_ST2_all, y_test_ST2_all)
+  accuracy_ST1_N_all <- ldply(Accuracy_ST1_N, data.frame)
+  accuracy_ST2_N_all <- ldply(Accuracy_ST2_N, data.frame)
+  
+  write.csv(accuracy_ST1_N_all,"C:/IIITD/WIP/Analysis/Journal/TestResults/accuracy_all_SigType1_PCA_locvar0_code1.csv")
+  
+  write.csv(accuracy_ST2_N_all,"C:/IIITD/WIP/Analysis/Journal/TestResults/accuracy_all_SigType2_PCA_locvar0_code1.csv")
+  
+  write.csv(predictions_prob_ST1_all,"C:/IIITD/WIP/Analysis/Journal/TestResults/Prob_all_SigType1_PCA_locvar0_code1.csv")
+  
+  write.csv(predictions_prob_ST2_all,"C:/IIITD/WIP/Analysis/Journal/TestResults/Prob_all_SigType2_PCA_locvar0_code1.csv")
+  
   
   
   ## Write prediction prob and actual to csv
